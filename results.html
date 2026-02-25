@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduStream | Results</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="app-layout">
+        <div class="main-wrapper">
+            <main class="content-area">
+                <div class="card animate-fade">
+                    <div class="card-header">
+                        <h3 class="card-title">Manage Results</h3>
+                        <button class="btn btn-primary" onclick="toggleModal(true)">
+                            <i class="fas fa-file-invoice"></i>
+                            <span>Add Results</span>
+                        </button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table id="results-table">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Course</th>
+                                    <th>Marks</th>
+                                    <th>Grade</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Dynamic -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal" id="results-modal">
+        <div class="modal-content">
+            <i class="fas fa-times modal-close" onclick="toggleModal(false)"></i>
+            <div class="modal-header">
+                <h2>Enter Student Marks</h2>
+            </div>
+            <form id="results-form">
+                <div class="form-group">
+                    <label for="r-student">Student</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-user-graduate"></i>
+                        <select id="r-student" required></select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="r-course">Course</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-book"></i>
+                        <select id="r-course" required></select>
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="r-marks">Obtained Marks</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-marker"></i>
+                            <input type="number" id="r-marks" min="0" max="100" placeholder="0-100" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="r-total">Total Marks</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-calculator"></i>
+                            <input type="number" id="r-total" value="100" readonly>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">
+                    <span>Save Results</span>
+                    <i class="fas fa-check-circle"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/data-store.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/ui-core.js"></script>
+    <script>
+        Auth.checkAuth('Admin');
+        UI.init('Academic Results');
+
+        function toggleModal(show) {
+            document.getElementById('results-modal').classList.toggle('active', show);
+            if (show) {
+                document.getElementById('r-student').innerHTML = DataStore.getStudents().map(s => `<option value="${s.regNo}">${s.name}</option>`).join('');
+                document.getElementById('r-course').innerHTML = DataStore.getCourses().map(c => `<option value="${c.code}">${c.name}</option>`).join('');
+            }
+        }
+
+        function calculateGrade(marks) {
+            if (marks >= 90) return { grade: 'A+', status: 'Pass' };
+            if (marks >= 80) return { grade: 'A', status: 'Pass' };
+            if (marks >= 70) return { grade: 'B', status: 'Pass' };
+            if (marks >= 60) return { grade: 'C', status: 'Pass' };
+            if (marks >= 50) return { grade: 'D', status: 'Pass' };
+            return { grade: 'F', status: 'Fail' };
+        }
+
+        function renderResults() {
+            const results = DataStore.getResults();
+            const students = DataStore.getStudents();
+            const courses = DataStore.getCourses();
+            const tbody = document.querySelector('#results-table tbody');
+
+            if (results.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center">No results recorded.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = results.map(r => {
+                const s = students.find(st => st.regNo === r.studentRegNo);
+                const c = courses.find(co => co.code === r.courseCode);
+                return `
+                    <tr>
+                        <td><strong>${s ? s.name : 'Unknown'}</strong></td>
+                        <td>${c ? c.name : 'Unknown'}</td>
+                        <td>${r.marks} / ${r.total}</td>
+                        <td><span class="badge badge-warning">${r.grade}</span></td>
+                        <td>
+                            <span class="badge ${r.status === 'Pass' ? 'badge-success' : 'badge-danger'}">
+                                ${r.status}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        document.getElementById('results-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const marks = parseInt(document.getElementById('r-marks').value);
+            const { grade, status } = calculateGrade(marks);
+
+            const result = {
+                studentRegNo: document.getElementById('r-student').value,
+                courseCode: document.getElementById('r-course').value,
+                marks: marks,
+                total: 100,
+                grade: grade,
+                status: status
+            };
+
+            DataStore.addResult(result);
+            toggleModal(false);
+            renderResults();
+        });
+
+        renderResults();
+    </script>
+</body>
+
+</html>

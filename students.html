@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduStream | Student Management</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="app-layout">
+        <div class="main-wrapper">
+            <main class="content-area">
+                <div class="card animate-fade">
+                    <div class="card-header">
+                        <h3 class="card-title">Manage Students</h3>
+                        <button class="btn btn-primary" onclick="toggleModal(true)">
+                            <i class="fas fa-plus"></i>
+                            <span>Add Student</span>
+                        </button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table id="students-table">
+                            <thead>
+                                <tr>
+                                    <th>Register No</th>
+                                    <th>Full Name</th>
+                                    <th>Department</th>
+                                    <th>Year</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Dynamic -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div class="modal" id="student-modal">
+        <div class="modal-content">
+            <i class="fas fa-times modal-close" onclick="toggleModal(false)"></i>
+            <div class="modal-header">
+                <h2>Add New Student</h2>
+            </div>
+            <form id="student-form">
+                <div class="form-group">
+                    <label for="s-regno">Register Number</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-hashtag"></i>
+                        <input type="text" id="s-regno" placeholder="e.g. S101" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="s-name">Full Name</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="s-name" placeholder="Enter student name" required>
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="s-dept">Department</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-building"></i>
+                            <input type="text" id="s-dept" placeholder="e.g. CS" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="s-year">Year</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-calendar"></i>
+                            <select id="s-year" required>
+                                <option value="1st Year">1st Year</option>
+                                <option value="2nd Year">2nd Year</option>
+                                <option value="3rd Year">3rd Year</option>
+                                <option value="4th Year">4th Year</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">
+                    <span>Save Student</span>
+                    <i class="fas fa-save"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/data-store.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/ui-core.js"></script>
+    <script>
+        Auth.checkAuth('Admin');
+        UI.init('Student Management');
+
+        function toggleModal(show) {
+            const modal = document.getElementById('student-modal');
+            modal.classList.toggle('active', show);
+        }
+
+        function renderStudents() {
+            const students = DataStore.getStudents();
+            const tbody = document.querySelector('#students-table tbody');
+
+            if (students.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center">No students found. Add your first student!</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = students.map(s => `
+                <tr>
+                    <td><strong>${s.regNo}</strong></td>
+                    <td>${s.name}</td>
+                    <td>${s.dept}</td>
+                    <td><span class="badge ${s.year.includes('1st') ? 'badge-info' : 'badge-success'}">${s.year}</span></td>
+                    <td>
+                        <div class="actions">
+                            <button class="btn-icon" title="Edit"><i class="fas fa-edit"></i></button>
+                            <button class="btn-icon btn-delete" title="Delete" onclick="deleteStudent('${s.regNo}')"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function deleteStudent(regNo) {
+            if (confirm(`Are you sure you want to delete student ${regNo}?`)) {
+                DataStore.deleteStudent(regNo);
+                renderStudents();
+            }
+        }
+
+        document.getElementById('student-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const student = {
+                regNo: document.getElementById('s-regno').value,
+                name: document.getElementById('s-name').value,
+                dept: document.getElementById('s-dept').value,
+                year: document.getElementById('s-year').value
+            };
+
+            if (DataStore.addStudent(student)) {
+                toggleModal(false);
+                renderStudents();
+                document.getElementById('student-form').reset();
+            } else {
+                alert('Register Number already exists!');
+            }
+        });
+
+        renderStudents();
+    </script>
+</body>
+
+</html>

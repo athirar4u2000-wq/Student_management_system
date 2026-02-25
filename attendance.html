@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduStream | Attendance</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="app-layout">
+        <div class="main-wrapper">
+            <main class="content-area">
+                <div class="card animate-fade">
+                    <div class="card-header">
+                        <h3 class="card-title">Mark Attendance</h3>
+                        <div class="actions">
+                            <button class="btn btn-primary" onclick="toggleModal(true)">
+                                <i class="fas fa-check-double"></i>
+                                <span>Record Attendance</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table id="attendance-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Student</th>
+                                    <th>Course</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Dynamic -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal" id="attendance-modal">
+        <div class="modal-content">
+            <i class="fas fa-times modal-close" onclick="toggleModal(false)"></i>
+            <div class="modal-header">
+                <h2>Record Attendance</h2>
+            </div>
+            <form id="attendance-form">
+                <div class="form-group">
+                    <label for="a-date">Date</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-calendar-day"></i>
+                        <input type="date" id="a-date" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="a-student">Student</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-user-graduate"></i>
+                        <select id="a-student" required>
+                            <!-- Dynamic -->
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="a-course">Course</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-book"></i>
+                        <select id="a-course" required>
+                            <!-- Dynamic -->
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="a-status">Status</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-info-circle"></i>
+                        <select id="a-status" required>
+                            <option value="Present">Present</option>
+                            <option value="Absent">Absent</option>
+                            <option value="Late">Late</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">
+                    <span>Save Record</span>
+                    <i class="fas fa-save"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/data-store.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/ui-core.js"></script>
+    <script>
+        Auth.checkAuth('Admin');
+        UI.init('Attendance Records');
+
+        function toggleModal(show) {
+            document.getElementById('attendance-modal').classList.toggle('active', show);
+            if (show) {
+                // Populate students and courses
+                const sSelect = document.getElementById('a-student');
+                const cSelect = document.getElementById('a-course');
+
+                sSelect.innerHTML = DataStore.getStudents().map(s => `<option value="${s.regNo}">${s.name} (${s.regNo})</option>`).join('');
+                cSelect.innerHTML = DataStore.getCourses().map(c => `<option value="${c.code}">${c.name} (${c.code})</option>`).join('');
+
+                document.getElementById('a-date').valueAsDate = new Date();
+            }
+        }
+
+        function renderAttendance() {
+            const att = DataStore.getAttendance();
+            const students = DataStore.getStudents();
+            const courses = DataStore.getCourses();
+            const tbody = document.querySelector('#attendance-table tbody');
+
+            if (att.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center">No records found.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = att.slice().reverse().map(a => {
+                const s = students.find(st => st.regNo === a.studentRegNo);
+                const c = courses.find(co => co.code === a.courseCode);
+                return `
+                    <tr>
+                        <td>${a.date}</td>
+                        <td><strong>${s ? s.name : 'Unknown'}</strong></td>
+                        <td>${c ? c.name : 'Unknown'}</td>
+                        <td>
+                            <span class="badge ${a.status === 'Present' ? 'badge-success' : 'badge-danger'}">
+                                ${a.status}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        document.getElementById('attendance-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const record = {
+                date: document.getElementById('a-date').value,
+                studentRegNo: document.getElementById('a-student').value,
+                courseCode: document.getElementById('a-course').value,
+                status: document.getElementById('a-status').value
+            };
+
+            DataStore.addAttendance(record);
+            toggleModal(false);
+            renderAttendance();
+        });
+
+        renderAttendance();
+    </script>
+</body>
+
+</html>

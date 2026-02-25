@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduStream | Course Management</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="app-layout">
+        <div class="main-wrapper">
+            <main class="content-area">
+                <div class="card animate-fade">
+                    <div class="card-header">
+                        <h3 class="card-title">Manage Courses</h3>
+                        <button class="btn btn-primary" onclick="toggleModal(true)">
+                            <i class="fas fa-plus"></i>
+                            <span>Add Course</span>
+                        </button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table id="courses-table">
+                            <thead>
+                                <tr>
+                                    <th>Course Code</th>
+                                    <th>Title</th>
+                                    <th>Credits</th>
+                                    <th>Students Enrolled</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Dynamic -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal" id="course-modal">
+        <div class="modal-content">
+            <i class="fas fa-times modal-close" onclick="toggleModal(false)"></i>
+            <div class="modal-header">
+                <h2>Add New Course</h2>
+            </div>
+            <form id="course-form">
+                <div class="form-group">
+                    <label for="c-code">Course Code</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-barcode"></i>
+                        <input type="text" id="c-code" placeholder="e.g. CS101" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="c-title">Course Title</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-book"></i>
+                        <input type="text" id="c-title" placeholder="e.g. Introduction to Programming" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="c-credits">Credits</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-star"></i>
+                        <input type="number" id="c-credits" placeholder="e.g. 4" min="1" max="10" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">
+                    <span>Add Course</span>
+                    <i class="fas fa-plus-circle"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/data-store.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/ui-core.js"></script>
+    <script>
+        Auth.checkAuth('Admin');
+        UI.init('Course Management');
+
+        function toggleModal(show) {
+            document.getElementById('course-modal').classList.toggle('active', show);
+        }
+
+        function renderCourses() {
+            const courses = DataStore.getCourses();
+            const enrollments = DataStore.getEnrollments();
+            const tbody = document.querySelector('#courses-table tbody');
+
+            if (courses.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center">No courses found.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = courses.map(c => {
+                const count = enrollments.filter(e => e.courseCode === c.code).length;
+                return `
+                    <tr>
+                        <td><strong>${c.code}</strong></td>
+                        <td>${c.name}</td>
+                        <td><span class="badge badge-warning">${c.credits} Credits</span></td>
+                        <td>${count} Students</td>
+                        <td>
+                            <div class="actions">
+                                <button class="btn-icon" title="Edit"><i class="fas fa-edit"></i></button>
+                                <button class="btn-icon btn-delete" title="Delete" onclick="deleteCourse('${c.code}')"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function deleteCourse(code) {
+            if (confirm(`Delete course ${code}?`)) {
+                DataStore.deleteCourse(code);
+                renderCourses();
+            }
+        }
+
+        document.getElementById('course-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const course = {
+                code: document.getElementById('c-code').value,
+                name: document.getElementById('c-title').value,
+                credits: document.getElementById('c-credits').value
+            };
+
+            if (DataStore.addCourse(course)) {
+                toggleModal(false);
+                renderCourses();
+                document.getElementById('course-form').reset();
+            } else {
+                alert('Course Code already exists!');
+            }
+        });
+
+        renderCourses();
+    </script>
+</body>
+
+</html>

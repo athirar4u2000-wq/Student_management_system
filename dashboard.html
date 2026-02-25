@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduStream | Admin Dashboard</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="app-layout">
+        <div class="main-wrapper">
+            <main class="content-area">
+                <div class="stats-grid animate-fade">
+                    <div class="stat-card">
+                        <div class="stat-icon bg-p"><i class="fas fa-user-graduate"></i></div>
+                        <div class="stat-info">
+                            <span class="label">Total Students</span>
+                            <span class="value" id="total-students">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon bg-s"><i class="fas fa-book"></i></div>
+                        <div class="stat-info">
+                            <span class="label">Course Units</span>
+                            <span class="value" id="total-courses">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon bg-a"><i class="fas fa-user-check"></i></div>
+                        <div class="stat-info">
+                            <span class="label">Active Enrollments</span>
+                            <span class="value" id="total-enroll">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon bg-suc"><i class="fas fa-calendar-alt"></i></div>
+                        <div class="stat-info">
+                            <span class="label">Avg Attendance</span>
+                            <span class="value" id="avg-attendance">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-2 mt-4" style="display: grid; grid-template-columns: 2fr 1fr; gap: 25px;">
+                    <div class="card animate-fade" style="animation-delay: 0.1s;">
+                        <div class="card-header">
+                            <h3 class="card-title">Recent Students</h3>
+                            <a href="students.html" class="btn btn-primary"
+                                style="padding: 8px 16px; font-size: 0.8rem;">View All</a>
+                        </div>
+                        <div class="table-responsive">
+                            <table id="recent-students-table">
+                                <thead>
+                                    <tr>
+                                        <th>Reg No</th>
+                                        <th>Name</th>
+                                        <th>Department</th>
+                                        <th>Year</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Dynamic -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card animate-fade" style="animation-delay: 0.2s;">
+                        <div class="card-header">
+                            <h3 class="card-title">Calendar</h3>
+                        </div>
+                        <div style="text-align: center; padding: 20px;">
+                            <img src="https://via.placeholder.com/300x200?text=Calendar+Widget" alt="Calendar"
+                                style="width: 100%; border-radius: 12px;">
+                            <p style="margin-top: 15px; color: var(--text-muted);">No upcoming events today.</p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="js/data-store.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/ui-core.js"></script>
+    <script>
+        Auth.checkAuth('Admin');
+        UI.init('Admin Dashboard');
+
+        // Load Stats
+        document.getElementById('total-students').innerText = DataStore.getStudents().length;
+        document.getElementById('total-courses').innerText = DataStore.getCourses().length;
+        document.getElementById('total-enroll').innerText = DataStore.getEnrollments().length;
+
+        const att = DataStore.getAttendance();
+        if (att.length > 0) {
+            const present = att.filter(a => a.status === 'Present').length;
+            document.getElementById('avg-attendance').innerText = Math.round((present / att.length) * 100) + '%';
+        }
+
+        // Load Recent Students
+        const students = DataStore.getStudents().slice(-5).reverse();
+        const tbody = document.querySelector('#recent-students-table tbody');
+        if (students.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center">No students registered yet.</td></tr>';
+        } else {
+            tbody.innerHTML = students.map(s => `
+                <tr>
+                    <td><strong>${s.regNo}</strong></td>
+                    <td>${s.name}</td>
+                    <td>${s.dept}</td>
+                    <td><span class="badge badge-success">${s.year}</span></td>
+                </tr>
+            `).join('');
+        }
+    </script>
+</body>
+
+</html>

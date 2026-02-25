@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduStream | Course Enrollment</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="app-layout">
+        <div class="main-wrapper">
+            <main class="content-area">
+                <div class="stats-grid animate-fade">
+                    <div class="stat-card">
+                        <div class="stat-icon bg-p"><i class="fas fa-user-plus"></i></div>
+                        <div class="stat-info">
+                            <span class="label">Total Enrollments</span>
+                            <span class="value" id="total-enrollments">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon bg-s"><i class="fas fa-users"></i></div>
+                        <div class="stat-info">
+                            <span class="label">Enrolled Students</span>
+                            <span class="value" id="unique-students">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon bg-a"><i class="fas fa-book"></i></div>
+                        <div class="stat-info">
+                            <span class="label">Active Courses</span>
+                            <span class="value" id="active-courses">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card animate-fade" style="animation-delay: 0.1s;">
+                    <div class="card-header">
+                        <h3 class="card-title">Student Course Enrollments</h3>
+                        <button class="btn btn-primary" onclick="toggleModal(true)">
+                            <i class="fas fa-user-plus"></i>
+                            <span>Enroll Student</span>
+                        </button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table id="enrollment-table">
+                            <thead>
+                                <tr>
+                                    <th>Student Reg No</th>
+                                    <th>Student Name</th>
+                                    <th>Course Code</th>
+                                    <th>Course Title</th>
+                                    <th>Credits</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Dynamic -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Enrollment Summary by Student -->
+                <div class="card animate-fade mt-4" style="animation-delay: 0.2s; margin-top: 30px;">
+                    <div class="card-header">
+                        <h3 class="card-title">Enrollment Summary by Student</h3>
+                    </div>
+                    <div id="student-summary"
+                        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; padding: 10px 0;">
+                        <!-- Dynamic cards -->
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Enrollment Modal -->
+    <div class="modal" id="enrollment-modal">
+        <div class="modal-content">
+            <i class="fas fa-times modal-close" onclick="toggleModal(false)"></i>
+            <div class="modal-header">
+                <h2>Enroll Student in Course</h2>
+            </div>
+            <form id="enrollment-form">
+                <div class="form-group">
+                    <label for="e-student">Select Student</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-user-graduate"></i>
+                        <select id="e-student" required>
+                            <option value="">Choose a student...</option>
+                            <!-- Dynamic -->
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="e-course">Select Course</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-book"></i>
+                        <select id="e-course" required>
+                            <option value="">Choose a course...</option>
+                            <!-- Dynamic -->
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Enrollment Details</label>
+                    <div
+                        style="background: var(--bg-main); padding: 15px; border-radius: var(--radius); font-size: 0.9rem;">
+                        <p id="enroll-preview" style="color: var(--text-muted);">Select student and course to preview
+                            enrollment</p>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">
+                    <span>Confirm Enrollment</span>
+                    <i class="fas fa-check-circle"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/data-store.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/ui-core.js"></script>
+    <script>
+        Auth.checkAuth('Admin');
+        UI.init('Course Enrollment');
+
+        function toggleModal(show) {
+            const modal = document.getElementById('enrollment-modal');
+            modal.classList.toggle('active', show);
+
+            if (show) {
+                loadFormData();
+            }
+        }
+
+        function loadFormData() {
+            const students = DataStore.getStudents();
+            const courses = DataStore.getCourses();
+
+            document.getElementById('e-student').innerHTML =
+                '<option value="">Choose a student...</option>' +
+                students.map(s => `<option value="${s.regNo}">${s.name} (${s.regNo})</option>`).join('');
+
+            document.getElementById('e-course').innerHTML =
+                '<option value="">Choose a course...</option>' +
+                courses.map(c => `<option value="${c.code}">${c.name} (${c.code} - ${c.credits} Credits)</option>`).join('');
+        }
+
+        // Update preview when selections change
+        document.addEventListener('DOMContentLoaded', () => {
+            const studentSelect = document.getElementById('e-student');
+            const courseSelect = document.getElementById('e-course');
+
+            const updatePreview = () => {
+                const students = DataStore.getStudents();
+                const courses = DataStore.getCourses();
+                const preview = document.getElementById('enroll-preview');
+
+                const selectedStudent = students.find(s => s.regNo === studentSelect.value);
+                const selectedCourse = courses.find(c => c.code === courseSelect.value);
+
+                if (selectedStudent && selectedCourse) {
+                    preview.innerHTML = `
+                        <strong style="color: var(--primary);">📚 Enrolling:</strong><br>
+                        <span style="color: var(--text-main);">${selectedStudent.name}</span> in 
+                        <span style="color: var(--text-main);">${selectedCourse.name}</span>
+                    `;
+                } else {
+                    preview.innerHTML = 'Select student and course to preview enrollment';
+                }
+            };
+
+            studentSelect?.addEventListener('change', updatePreview);
+            courseSelect?.addEventListener('change', updatePreview);
+        });
+
+        function renderEnrollments() {
+            const enrollments = DataStore.getEnrollments();
+            const students = DataStore.getStudents();
+            const courses = DataStore.getCourses();
+            const tbody = document.querySelector('#enrollment-table tbody');
+
+            // Update stats
+            document.getElementById('total-enrollments').innerText = enrollments.length;
+            const uniqueStudents = [...new Set(enrollments.map(e => e.studentRegNo))];
+            document.getElementById('unique-students').innerText = uniqueStudents.length;
+            const uniqueCourses = [...new Set(enrollments.map(e => e.courseCode))];
+            document.getElementById('active-courses').innerText = uniqueCourses.length;
+
+            if (enrollments.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">No enrollments found. Start enrolling students!</td></tr>';
+            } else {
+                tbody.innerHTML = enrollments.map(e => {
+                    const student = students.find(s => s.regNo === e.studentRegNo);
+                    const course = courses.find(c => c.code === e.courseCode);
+                    return `
+                        <tr>
+                            <td><strong>${e.studentRegNo}</strong></td>
+                            <td>${student ? student.name : 'Unknown'}</td>
+                            <td><span class="badge badge-info">${e.courseCode}</span></td>
+                            <td>${course ? course.name : 'Unknown'}</td>
+                            <td><span class="badge badge-warning">${course ? course.credits : '0'} Credits</span></td>
+                            <td>
+                                <div class="actions">
+                                    <button class="btn-icon btn-delete" title="Remove Enrollment" 
+                                        onclick="removeEnrollment('${e.studentRegNo}', '${e.courseCode}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            renderStudentSummary();
+        }
+
+        function renderStudentSummary() {
+            const enrollments = DataStore.getEnrollments();
+            const students = DataStore.getStudents();
+            const courses = DataStore.getCourses();
+            const container = document.getElementById('student-summary');
+
+            const uniqueStudents = [...new Set(enrollments.map(e => e.studentRegNo))];
+
+            if (uniqueStudents.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-muted); text-align: center; width: 100%;">No enrollments to display.</p>';
+                return;
+            }
+
+            container.innerHTML = uniqueStudents.map(regNo => {
+                const student = students.find(s => s.regNo === regNo);
+                const studentEnrollments = enrollments.filter(e => e.studentRegNo === regNo);
+                const totalCredits = studentEnrollments.reduce((sum, e) => {
+                    const course = courses.find(c => c.code === e.courseCode);
+                    return sum + (course ? parseInt(course.credits) : 0);
+                }, 0);
+
+                return `
+                    <div style="background: white; padding: 20px; border-radius: var(--radius-lg); box-shadow: var(--shadow);">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
+                            <div class="user-avatar" style="width: 45px; height: 45px; font-size: 1.2rem;">
+                                ${student ? student.name[0] : '?'}
+                            </div>
+                            <div>
+                                <h4 style="margin: 0; font-size: 1rem;">${student ? student.name : 'Unknown'}</h4>
+                                <p style="margin: 0; font-size: 0.8rem; color: var(--text-muted);">${regNo}</p>
+                            </div>
+                        </div>
+                        <div style="border-top: 1px solid var(--border); padding-top: 12px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span style="color: var(--text-muted); font-size: 0.85rem;">Courses Enrolled:</span>
+                                <strong style="color: var(--primary);">${studentEnrollments.length}</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: var(--text-muted); font-size: 0.85rem;">Total Credits:</span>
+                                <strong style="color: var(--success);">${totalCredits}</strong>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function removeEnrollment(regNo, code) {
+            if (confirm(`Remove enrollment for student ${regNo} from course ${code}?`)) {
+                const enrollments = DataStore.getEnrollments();
+                const filtered = enrollments.filter(e => !(e.studentRegNo === regNo && e.courseCode === code));
+
+                // Manually update the data since we need to filter
+                const data = JSON.parse(localStorage.getItem('eduStreamData_v2'));
+                data.enrollments = filtered;
+                localStorage.setItem('eduStreamData_v2', JSON.stringify(data));
+
+                // Reload data
+                location.reload();
+            }
+        }
+
+        document.getElementById('enrollment-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const enrollment = {
+                studentRegNo: document.getElementById('e-student').value,
+                courseCode: document.getElementById('e-course').value
+            };
+
+            if (DataStore.addEnrollment(enrollment)) {
+                toggleModal(false);
+                renderEnrollments();
+                document.getElementById('enrollment-form').reset();
+                alert('✅ Student enrolled successfully!');
+            } else {
+                alert('⚠️ This student is already enrolled in this course!');
+            }
+        });
+
+        renderEnrollments();
+    </script>
+</body>
+
+</html>

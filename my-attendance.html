@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduStream | My Attendance</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="app-layout">
+        <div class="main-wrapper">
+            <main class="content-area">
+                <div class="stats-grid animate-fade">
+                    <div class="stat-card">
+                        <div class="stat-icon bg-suc"><i class="fas fa-calendar-check"></i></div>
+                        <div class="stat-info">
+                            <span class="label">Total Present</span>
+                            <span class="value" id="count-present">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon bg-danger"><i class="fas fa-calendar-times"></i></div>
+                        <div class="stat-info">
+                            <span class="label">Total Absent</span>
+                            <span class="value" id="count-absent">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon bg-p"><i class="fas fa-percentage"></i></div>
+                        <div class="stat-info">
+                            <span class="label">Attendance rate</span>
+                            <span class="value" id="attendance-perc">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card animate-fade" style="animation-delay: 0.1s;">
+                    <div class="card-header">
+                        <h3 class="card-title">Attendance History</h3>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table id="my-attendance-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Course</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Dynamic -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="js/data-store.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/ui-core.js"></script>
+    <script>
+        Auth.checkAuth('Student');
+        UI.init('My Attendance');
+
+        const user = Auth.getCurrentUser();
+        const att = DataStore.getAttendance().filter(a => a.studentRegNo === user.regNo);
+        const courses = DataStore.getCourses();
+        const tbody = document.querySelector('#my-attendance-table tbody');
+
+        // Update Stats
+        const present = att.filter(a => a.status === 'Present').length;
+        const absent = att.filter(a => a.status === 'Absent').length;
+        document.getElementById('count-present').innerText = present;
+        document.getElementById('count-absent').innerText = absent;
+
+        if (att.length > 0) {
+            document.getElementById('attendance-perc').innerText = Math.round((present / att.length) * 100) + '%';
+        }
+
+        if (att.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center">No attendance records found.</td></tr>';
+        } else {
+            tbody.innerHTML = att.slice().reverse().map(a => {
+                const c = courses.find(co => co.code === a.courseCode);
+                return `
+                    <tr>
+                        <td>${a.date}</td>
+                        <td>${c ? c.name : 'Unknown Course'}</td>
+                        <td>
+                            <span class="badge ${a.status === 'Present' ? 'badge-success' : 'badge-danger'}">
+                                ${a.status}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+    </script>
+</body>
+
+</html>

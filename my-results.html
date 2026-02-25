@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduStream | My Results</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="app-layout">
+        <div class="main-wrapper">
+            <main class="content-area">
+                <div class="card animate-fade">
+                    <div class="card-header">
+                        <h3 class="card-title">My Academic Results</h3>
+                        <button class="btn btn-primary" onclick="window.print()"
+                            style="width: auto; padding: 8px 20px;">
+                            <i class="fas fa-print"></i>
+                            <span>Print Report</span>
+                        </button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table id="my-results-table">
+                            <thead>
+                                <tr>
+                                    <th>Course Code</th>
+                                    <th>Course Name</th>
+                                    <th>Obtained</th>
+                                    <th>Total</th>
+                                    <th>Grade</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Dynamic -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card animate-fade mt-4" style="animation-delay: 0.1s; margin-top: 30px;">
+                    <h3 class="card-title" style="margin-bottom: 20px;">Performance Analytics</h3>
+                    <div
+                        style="height: 200px; display: flex; align-items: flex-end; gap: 20px; padding: 20px; background: var(--bg-main); border-radius: 12px;">
+                        <div
+                            style="flex: 1; background: var(--primary); border-radius: 4px 4px 0 0; height: 80%; position: relative;">
+                            <span
+                                style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 0.7rem; white-space: nowrap;">Assignment</span>
+                        </div>
+                        <div
+                            style="flex: 1; background: var(--secondary); border-radius: 4px 4px 0 0; height: 60%; position: relative;">
+                            <span
+                                style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 0.7rem; white-space: nowrap;">Mid-Term</span>
+                        </div>
+                        <div
+                            style="flex: 1; background: var(--accent); border-radius: 4px 4px 0 0; height: 95%; position: relative;">
+                            <span
+                                style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 0.7rem; white-space: nowrap;">Finals</span>
+                        </div>
+                        <div
+                            style="flex: 1; background: var(--success); border-radius: 4px 4px 0 0; height: 40%; position: relative;">
+                            <span
+                                style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 0.7rem; white-space: nowrap;">Lab</span>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="js/data-store.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/ui-core.js"></script>
+    <script>
+        Auth.checkAuth('Student');
+        UI.init('My Results');
+
+        const user = Auth.getCurrentUser();
+        const results = DataStore.getResults().filter(r => r.studentRegNo === user.regNo);
+        const courses = DataStore.getCourses();
+        const tbody = document.querySelector('#my-results-table tbody');
+
+        if (results.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">No results published yet.</td></tr>';
+        } else {
+            tbody.innerHTML = results.map(r => {
+                const c = courses.find(co => co.code === r.courseCode);
+                return `
+                    <tr>
+                        <td><strong>${r.courseCode}</strong></td>
+                        <td>${c ? c.name : 'Unknown Course'}</td>
+                        <td style="font-weight: 700;">${r.marks}</td>
+                        <td style="color: var(--text-muted);">${r.total}</td>
+                        <td><span class="badge badge-warning">${r.grade}</span></td>
+                        <td>
+                            <span class="badge ${r.status === 'Pass' ? 'badge-success' : 'badge-danger'}">
+                                ${r.status}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+    </script>
+</body>
+
+</html>
