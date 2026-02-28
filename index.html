@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduStream | Login</title>
+    <title>Login</title>
     <link rel="stylesheet" href="css/style.css">
     <link
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap"
@@ -24,7 +24,7 @@
             <div class="auth-header">
                 <div class="logo">
                     <i class="fas fa-graduation-cap"></i>
-                    <span>Edu<span>Stream</span></span>
+                    <span>Education<span>Stream</span></span>
                 </div>
                 <h2>Welcome Back</h2>
                 <p>Enter your credentials to access your account</p>
@@ -83,7 +83,6 @@
             }
         });
 
-        // If already logged in, redirect
         if (Auth.isLoggedIn()) {
             const user = Auth.getCurrentUser();
             window.location.href = user.role === 'Admin' ? 'dashboard.html' : 'student-dashboard.html';

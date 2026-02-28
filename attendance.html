@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduStream | Attendance</title>
+    <title>Attendance</title>
     <link rel="stylesheet" href="css/style.css">
     <link
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap"
@@ -38,7 +38,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- Dynamic -->
+                              
                             </tbody>
                         </table>
                     </div>
@@ -47,7 +47,6 @@
         </div>
     </div>
 
-    <!-- Modal -->
     <div class="modal" id="attendance-modal">
         <div class="modal-content">
             <i class="fas fa-times modal-close" onclick="toggleModal(false)"></i>
@@ -67,7 +66,7 @@
                     <div class="input-wrapper">
                         <i class="fas fa-user-graduate"></i>
                         <select id="a-student" required>
-                            <!-- Dynamic -->
+                    
                         </select>
                     </div>
                 </div>
@@ -76,7 +75,7 @@
                     <div class="input-wrapper">
                         <i class="fas fa-book"></i>
                         <select id="a-course" required>
-                            <!-- Dynamic -->
+                            
                         </select>
                     </div>
                 </div>
@@ -109,7 +108,7 @@
         function toggleModal(show) {
             document.getElementById('attendance-modal').classList.toggle('active', show);
             if (show) {
-                // Populate students and courses
+                
                 const sSelect = document.getElementById('a-student');
                 const cSelect = document.getElementById('a-course');
 

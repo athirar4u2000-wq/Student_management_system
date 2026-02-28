@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduStream | Course Enrollment</title>
+    <title>Course Enrollment</title>
     <link rel="stylesheet" href="css/style.css">
     <link
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap"
@@ -62,27 +62,25 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- Dynamic -->
+                                
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- Enrollment Summary by Student -->
                 <div class="card animate-fade mt-4" style="animation-delay: 0.2s; margin-top: 30px;">
                     <div class="card-header">
                         <h3 class="card-title">Enrollment Summary by Student</h3>
                     </div>
                     <div id="student-summary"
                         style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; padding: 10px 0;">
-                        <!-- Dynamic cards -->
+                      
                     </div>
                 </div>
             </main>
         </div>
     </div>
 
-    <!-- Enrollment Modal -->
     <div class="modal" id="enrollment-modal">
         <div class="modal-content">
             <i class="fas fa-times modal-close" onclick="toggleModal(false)"></i>
@@ -96,7 +94,7 @@
                         <i class="fas fa-user-graduate"></i>
                         <select id="e-student" required>
                             <option value="">Choose a student...</option>
-                            <!-- Dynamic -->
+                        
                         </select>
                     </div>
                 </div>
@@ -106,7 +104,7 @@
                         <i class="fas fa-book"></i>
                         <select id="e-course" required>
                             <option value="">Choose a course...</option>
-                            <!-- Dynamic -->
+                           
                         </select>
                     </div>
                 </div>
@@ -155,7 +153,6 @@
                 courses.map(c => `<option value="${c.code}">${c.name} (${c.code} - ${c.credits} Credits)</option>`).join('');
         }
 
-        // Update preview when selections change
         document.addEventListener('DOMContentLoaded', () => {
             const studentSelect = document.getElementById('e-student');
             const courseSelect = document.getElementById('e-course');
@@ -189,7 +186,6 @@
             const courses = DataStore.getCourses();
             const tbody = document.querySelector('#enrollment-table tbody');
 
-            // Update stats
             document.getElementById('total-enrollments').innerText = enrollments.length;
             const uniqueStudents = [...new Set(enrollments.map(e => e.studentRegNo))];
             document.getElementById('unique-students').innerText = uniqueStudents.length;
@@ -277,12 +273,10 @@
                 const enrollments = DataStore.getEnrollments();
                 const filtered = enrollments.filter(e => !(e.studentRegNo === regNo && e.courseCode === code));
 
-                // Manually update the data since we need to filter
                 const data = JSON.parse(localStorage.getItem('eduStreamData_v2'));
                 data.enrollments = filtered;
                 localStorage.setItem('eduStreamData_v2', JSON.stringify(data));
 
-                // Reload data
                 location.reload();
             }
         }

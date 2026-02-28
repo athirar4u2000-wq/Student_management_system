@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduStream | Student Dashboard</title>
+    <title>Student Dashboard</title>
     <link rel="stylesheet" href="css/style.css">
     <link
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap"
@@ -55,7 +55,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- Dynamic -->
+                            
                             </tbody>
                         </table>
                     </div>
@@ -74,7 +74,6 @@
         const user = Auth.getCurrentUser();
         const regNo = user.regNo;
 
-        // Load Stats
         const enrollments = DataStore.getEnrollments().filter(e => e.studentRegNo === regNo);
         document.getElementById('total-my-courses').innerText = enrollments.length;
 
@@ -91,7 +90,6 @@
             else if (avgMarks >= 60) document.getElementById('my-overall-grade').innerText = 'Good';
             else document.getElementById('my-overall-grade').innerText = 'Average';
 
-            // Render table
             const courses = DataStore.getCourses();
             document.querySelector('#my-recent-results tbody').innerHTML = results.slice(-5).map(r => {
                 const c = courses.find(co => co.code === r.courseCode);
